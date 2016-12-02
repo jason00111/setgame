@@ -1,6 +1,7 @@
 let deck = [],
     faceUpCards = [],
-    selectedCards = []
+    selectedCards = [],
+    hintI = 0
 
 $(function() {
   deck = shuffleCards(generateCards())
@@ -14,11 +15,12 @@ $(function() {
 })
 
 function giveHint() {
-  set = findSet(faceUpCards)
-  if (set) {
-    set.forEach(card => {
+  sets = findSets(faceUpCards)
+  if (sets.length !== 0) {
+    sets[hintI].forEach(card => {
       $(`#${faceUpCards.indexOf(card)}`).toggleClass('hint')
     })
+    hintI = (hintI + 1) % sets.length
   } else {
     alert('There are no sets here')
     addThreeCards()
@@ -47,6 +49,7 @@ function attachClickHandlers() {
         alert('You found a set!')
         discardAndReplace()
         render()
+        hintI = 0
       } else {
         alert('This is not a set...')
         selectedCards = []
@@ -214,17 +217,18 @@ function isASet(cards) {
   return true
 }
 
-function findSet(cards) {
+function findSets(cards) {
+  let sets = []
   for (let i = 0; i < cards.length; i++) {
     for (let j = i + 1; j < cards.length; j++) {
       for (let k = j + 1; k < cards.length; k++) {
         if (isASet([cards[i], cards[j], cards[k]])) {
-          return [cards[i], cards[j], cards[k]]
+          sets.push([cards[i], cards[j], cards[k]])
         }
       }
     }
   }
-  return null
+  return sets
 }
 
 function numberOfSets(cards) {
