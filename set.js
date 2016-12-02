@@ -46,7 +46,7 @@ function attachClickHandlers() {
     }
     if (selectedCards.length === 3) {
       if (isASet(selectedCards)) {
-        alert('You found a set!')
+        // alert('You found a set!')
         discardAndReplace()
         render()
         hintI = 0
@@ -247,6 +247,12 @@ function numberOfSets(cards) {
 
 // depends on and alters deck
 function pick(n) {
+  while (n > deck.length) {
+    n--
+  }
+  if (n === 0) {
+    return null
+  }
   if (n === 1) return deck.pop()
   let pickedCards = []
   for (let i = 0; i < n; i++) {
@@ -257,15 +263,28 @@ function pick(n) {
 
 // depends on and alters selectedCards, faceUpCards, and deck
 function discardAndReplace() {
+  let card
   selectedCards.forEach(selectedCard => {
-    faceUpCards.splice(faceUpCards.indexOf(selectedCard), 1, pick(1))
+    card = pick(1)
+    if (card) {
+      faceUpCards.splice(faceUpCards.indexOf(selectedCard), 1, card)
+    } else {
+      faceUpCards.splice(faceUpCards.indexOf(selectedCard), 1)
+    }
   })
   selectedCards = []
 }
 
+// depends on and alters faceUpCards, and deck
 function addThreeCards() {
   const columns = Math.ceil(faceUpCards.length / 3)
-  faceUpCards.splice(columns, 0, pick(1))
-  faceUpCards.splice(columns * 2 + 1, 0, pick(1))
-  faceUpCards.splice(faceUpCards.length, 0, pick(1))
+  let card = pick(1)
+  if (card)
+    faceUpCards.splice(columns, 0, card)
+  card = pick(1)
+  if (card)
+    faceUpCards.splice(columns * 2 + 1, 0, pick(1))
+  card = pick(1)
+  if (card)
+    faceUpCards.splice(faceUpCards.length, 0, pick(1))
 }
