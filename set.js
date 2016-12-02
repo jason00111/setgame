@@ -18,7 +18,12 @@ function giveHint() {
   sets = findSets(faceUpCards)
   if (sets.length !== 0) {
     sets[hintI].forEach(card => {
-      $(`#${faceUpCards.indexOf(card)}`).toggleClass('hint')
+      $(`#${faceUpCards.indexOf(card)}`).addClass('hint')
+      window.setTimeout(
+        function() {
+          $(`#${faceUpCards.indexOf(card)}`).removeClass('hint')
+        }, 350
+      )
     })
     hintI = (hintI + 1) % sets.length
   } else {

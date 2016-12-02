@@ -5,7 +5,6 @@ td {
   border-radius: 10px;
   box-shadow: 0 4px 5px rgba(0,0,0,0.3);
   background-color: rgb(255,255,255);
-  transition: transform .7s;
 }
 
 body {
@@ -17,8 +16,17 @@ table {
 }
 
 .hint {
-  transform: rotate(360deg);
-  transition: transform .7s;
+  animation: wiggle .3s;
+}
+
+@keyframes wiggle {
+  20%, 60% {
+    transform: rotate(3deg);
+  }
+
+  40%, 80% {
+    transform: rotate(-3deg);
+  }
 }
 
 td:hover, .selected {
