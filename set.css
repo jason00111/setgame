@@ -9,6 +9,7 @@ td {
 
 body {
   background-color: rgb(255,255,252);
+  display: flex;
 }
 
 table {
@@ -34,5 +35,5 @@ td:hover, .selected {
 }
 
 path {
-  stroke-width: 0.04
+  stroke-width: 0.04;
 }

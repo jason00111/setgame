@@ -1,12 +1,14 @@
 let deck = [],
     faceUpCards = [],
     selectedCards = [],
-    hintI = 0
+    hintI = 0,
+    score = 0
 
 $(function() {
   deck = shuffleCards(generateCards())
   faceUpCards = pick(12)
-  render()
+  renderCards()
+  renderScore()
   $('body').keypress(function(event) {
     if (event.which === 104) {
       giveHint()
@@ -29,15 +31,21 @@ function giveHint() {
   } else {
     alert('There are no sets here')
     addThreeCards()
-    render()
+    renderCards()
   }
 }
 
-function render() {
+function renderCards() {
   $('tr').remove()
   displayCards()
   attachClickHandlers()
-  console.log('Number of sets:', numberOfSets(faceUpCards))
+}
+
+function renderScore() {
+  console.log('renderScore')
+  $('#score').empty()
+  $('#score').append(`<div>Score: ${score}</div>
+                      <div>Number of sets: ${numberOfSets(faceUpCards)}</div>`)
 }
 
 function attachClickHandlers() {
@@ -52,11 +60,15 @@ function attachClickHandlers() {
     if (selectedCards.length === 3) {
       if (isASet(selectedCards)) {
         // alert('You found a set!')
+        score++
+        renderScore()
         discardAndReplace()
-        render()
+        renderCards()
         hintI = 0
       } else {
         alert('This is not a set...')
+        if (score > 0) score--
+        renderScore()
         selectedCards = []
         $('td').removeClass('selected')
       }
