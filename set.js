@@ -6,9 +6,24 @@ let state = {
   hintI: 0
 }
 
+function saveGame() {
+  localStorage.state = JSON.stringify(state)
+}
+
+function loadGame() {
+  if (localStorage.state) {
+    state = JSON.parse(localStorage.state)
+    return true
+  } else {
+    return false
+  }
+}
+
 $(function() {
-  state.deck = shuffleCards(generateCards())
-  state.faceUpCards = draw(12)
+  if (!loadGame()) {
+    state.deck = shuffleCards(generateCards())
+    state.faceUpCards = draw(12)
+  }
   renderCards()
   renderScore()
   $('body').keypress(function(event) {
@@ -38,6 +53,7 @@ function giveHint() {
 }
 
 function renderCards() {
+  saveGame()
   $('tr').remove()
   displayCards()
   attachClickHandlers()
@@ -46,7 +62,7 @@ function renderCards() {
 function renderScore() {
   $('#score').empty()
   $('#score').append(`<div>Score: ${state.score}</div>
-                      <div>Number of sets: ${numberOfSets(state.faceUpCards)}</div>`)
+                      <div>Possible sets: ${numberOfSets(state.faceUpCards)}</div>`)
 }
 
 function attachClickHandlers() {
