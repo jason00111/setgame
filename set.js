@@ -19,6 +19,13 @@ function loadGame() {
   }
 }
 
+function resetGame() {
+  state.deck = shuffleCards(generateCards())
+  state.faceUpCards = draw(12)
+  renderCards()
+  renderScore()
+}
+
 $(function() {
   if (!loadGame()) {
     state.deck = shuffleCards(generateCards())
@@ -27,8 +34,13 @@ $(function() {
   renderCards()
   renderScore()
   $('body').keypress(function(event) {
-    if (event.which === 104) {
-      giveHint()
+    switch (event.which) {
+      case 104:
+        giveHint()
+        break;
+      case 114:
+        resetGame()
+        break;
     }
   })
 })
