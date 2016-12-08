@@ -112,20 +112,27 @@ function attachClickHandlers() {
 
 // depends on faceUpCards
 function displayCards() {
-  const columns = Math.ceil(state.faceUpCards.length / 3)
-  let htmlString = ''
-  state.faceUpCards.forEach((card, i) => {
-    if (i % columns === 0) {
-      htmlString += '<tr>'
-    }
-    htmlString += `<td id="${i}">`
-    htmlString += cardHtml(card)
-    htmlString += '</td>'
-    if (i % columns === columns - 1) {
-      htmlString += '</tr>\n'
-    }
+  let tds = state.faceUpCards.map((card, i) => {
+    let td = document.createElement('td')
+    td.id = i
+    td.innerHTML = cardHtml(card)
+    return td
   })
-  $('table').append(htmlString)
+
+  const cardsPerRow = Math.ceil(tds.length / 3)
+  let row
+
+  let rows = tds.reduce((rows, td, i) => {
+    if (i % cardsPerRow === 0) {
+      row = document.createElement('tr')
+    }
+    row.appendChild(td)
+    return rows.concat(row)
+  }, [])
+
+  rows.forEach(row =>
+    $('table').append(row)
+  )
 }
 
 const symbols = {
