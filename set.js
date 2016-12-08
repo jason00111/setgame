@@ -90,9 +90,9 @@ function attachClickHandlers() {
       if (isASet(state.selectedCards)) {
         // alert('You found a set!')
         state.score++
-        renderScore()
         discardAndReplace()
         renderCards()
+        renderScore()
         state.hintI = 0
       } else {
         alert('This is not a set...')
