@@ -20,8 +20,13 @@ function loadGame() {
 }
 
 function resetGame() {
-  state.deck = shuffleCards(generateCards())
-  state.faceUpCards = draw(12)
+  state = {
+    deck: shuffleCards(generateCards()),
+    faceUpCards: draw(12),
+    selectedCards: [],
+    score: 0,
+    hintI: 0
+  }
   renderCards()
   renderScore()
 }
