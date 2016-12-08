@@ -1,12 +1,14 @@
-let deck = [],
-    faceUpCards = [],
-    selectedCards = [],
-    hintI = 0,
-    score = 0
+let state = {
+  deck: [],
+  faceUpCards: [],
+  selectedCards: [],
+  score: 0,
+  hintI: 0
+}
 
 $(function() {
-  deck = shuffleCards(generateCards())
-  faceUpCards = pick(12)
+  state.deck = shuffleCards(generateCards())
+  state.faceUpCards = draw(12)
   renderCards()
   renderScore()
   $('body').keypress(function(event) {
@@ -17,17 +19,17 @@ $(function() {
 })
 
 function giveHint() {
-  sets = findSets(faceUpCards)
+  sets = findSets(state.faceUpCards)
   if (sets.length !== 0) {
-    sets[hintI].forEach(card => {
-      $(`#${faceUpCards.indexOf(card)}`).addClass('hint')
+    sets[state.hintI].forEach(card => {
+      $(`#${state.faceUpCards.indexOf(card)}`).addClass('hint')
       window.setTimeout(
         function() {
-          $(`#${faceUpCards.indexOf(card)}`).removeClass('hint')
+          $(`#${state.faceUpCards.indexOf(card)}`).removeClass('hint')
         }, 350
       )
     })
-    hintI = (hintI + 1) % sets.length
+    state.hintI = (state.hintI + 1) % sets.length
   } else {
     alert('There are no sets here')
     addThreeCards()
@@ -42,34 +44,33 @@ function renderCards() {
 }
 
 function renderScore() {
-  console.log('renderScore')
   $('#score').empty()
-  $('#score').append(`<div>Score: ${score}</div>
-                      <div>Number of sets: ${numberOfSets(faceUpCards)}</div>`)
+  $('#score').append(`<div>Score: ${state.score}</div>
+                      <div>Number of sets: ${numberOfSets(state.faceUpCards)}</div>`)
 }
 
 function attachClickHandlers() {
   $('td').click(function() {
     $(this).toggleClass('selected')
-    const card = faceUpCards[Number($(this).attr('id'))]
-    if (!selectedCards.includes(card)) {
-      selectedCards.push(card)
+    const card = state.faceUpCards[Number($(this).attr('id'))]
+    if (!state.selectedCards.includes(card)) {
+      state.selectedCards.push(card)
     } else {
-      selectedCards.splice(selectedCards.indexOf(card), 1)
+      state.selectedCards.splice(state.selectedCards.indexOf(card), 1)
     }
-    if (selectedCards.length === 3) {
-      if (isASet(selectedCards)) {
+    if (state.selectedCards.length === 3) {
+      if (isASet(state.selectedCards)) {
         // alert('You found a set!')
-        score++
+        state.score++
         renderScore()
         discardAndReplace()
         renderCards()
-        hintI = 0
+        state.hintI = 0
       } else {
         alert('This is not a set...')
-        if (score > 0) score--
+        if (state.score > 0) state.score--
         renderScore()
-        selectedCards = []
+        state.selectedCards = []
         $('td').removeClass('selected')
       }
     }
@@ -78,9 +79,9 @@ function attachClickHandlers() {
 
 // depends on faceUpCards
 function displayCards() {
-  const columns = Math.ceil(faceUpCards.length / 3)
+  const columns = Math.ceil(state.faceUpCards.length / 3)
   let htmlString = ''
-  faceUpCards.forEach((card, i) => {
+  state.faceUpCards.forEach((card, i) => {
     if (i % columns === 0) {
       htmlString += '<tr>'
     }
@@ -263,45 +264,45 @@ function numberOfSets(cards) {
 }
 
 // depends on and alters deck
-function pick(n) {
-  while (n > deck.length) {
+function draw(n) {
+  while (n > state.deck.length) {
     n--
   }
   if (n === 0) {
     return null
   }
-  if (n === 1) return deck.pop()
-  let pickedCards = []
+  if (n === 1) return state.deck.pop()
+  let drawnCards = []
   for (let i = 0; i < n; i++) {
-    pickedCards.push(deck.pop())
+    drawnCards.push(state.deck.pop())
   }
-  return pickedCards
+  return drawnCards
 }
 
 // depends on and alters selectedCards, faceUpCards, and deck
 function discardAndReplace() {
   let card
-  selectedCards.forEach(selectedCard => {
-    card = pick(1)
+  state.selectedCards.forEach(selectedCard => {
+    card = draw(1)
     if (card) {
-      faceUpCards.splice(faceUpCards.indexOf(selectedCard), 1, card)
+      state.faceUpCards.splice(state.faceUpCards.indexOf(selectedCard), 1, card)
     } else {
-      faceUpCards.splice(faceUpCards.indexOf(selectedCard), 1)
+      state.faceUpCards.splice(state.faceUpCards.indexOf(selectedCard), 1)
     }
   })
-  selectedCards = []
+  state.selectedCards = []
 }
 
 // depends on and alters faceUpCards, and deck
 function addThreeCards() {
-  const columns = Math.ceil(faceUpCards.length / 3)
-  let card = pick(1)
+  const columns = Math.ceil(state.faceUpCards.length / 3)
+  let card = draw(1)
   if (card)
-    faceUpCards.splice(columns, 0, card)
-  card = pick(1)
+    state.faceUpCards.splice(columns, 0, card)
+  card = draw(1)
   if (card)
-    faceUpCards.splice(columns * 2 + 1, 0, pick(1))
-  card = pick(1)
+    state.faceUpCards.splice(columns * 2 + 1, 0, draw(1))
+  card = draw(1)
   if (card)
-    faceUpCards.splice(faceUpCards.length, 0, pick(1))
+    state.faceUpCards.splice(state.faceUpCards.length, 0, draw(1))
 }
