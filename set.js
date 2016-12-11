@@ -6,6 +6,15 @@ let state = {
   hintI: 0
 }
 
+window.addEventListener('load', function() {
+  if (!loadGame()) {
+    state.deck = shuffleCards(generateCards())
+    state.faceUpCards = draw(12)
+  }
+  render()
+  attachKeypressEvents()
+})
+
 function saveGame() {
   localStorage.deck = JSON.stringify(state.deck)
   localStorage.faceUpCards = JSON.stringify(state.faceUpCards)
@@ -33,15 +42,6 @@ function resetGame() {
   }
   render()
 }
-
-window.addEventListener('load', function() {
-  if (!loadGame()) {
-    state.deck = shuffleCards(generateCards())
-    state.faceUpCards = draw(12)
-  }
-  render()
-  attachKeypressEvents()
-})
 
 function giveHint() {
   sets = findSets(state.faceUpCards)

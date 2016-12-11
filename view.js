@@ -5,11 +5,14 @@ function render() {
 }
 
 function renderCards() {
-  const table = document.getElementsByTagName('table')[0]
-  while (table.lastChild) table.removeChild(table.lastChild)
-
+  clearCards()
   displayCards()
   attachClickHandlers()
+}
+
+function clearCards() {
+  const cardsDiv = document.getElementById('cards')
+  while (cardsDiv.lastChild) cardsDiv.removeChild(cardsDiv.lastChild)
 }
 
 function renderScore() {
@@ -30,8 +33,8 @@ function renderScore() {
 }
 
 function attachClickHandlers() {
-  const tds = Array.from(document.getElementsByTagName('td'))
-  tds.forEach(td => td.addEventListener('click', function() {
+  const cardDivs = Array.from(document.getElementsByClassName('card'))
+  cardDivs.forEach(card => card.addEventListener('click', function() {
     this.classList.toggle('selected')
     const card = state.faceUpCards[Number(this.id)]
     if (!state.selectedCards.includes(card)) {
@@ -50,8 +53,8 @@ function attachClickHandlers() {
         if (state.score > 0) state.score--
         render()
         state.selectedCards = []
-        const tds = Array.from(document.getElementsByTagName('td'))
-        tds.forEach(td => td.classList.remove('selected'))
+        const cardDivs = Array.from(document.getElementsByClassName('card'))
+        cardDivs.forEach(card => card.classList.remove('selected'))
       }
     }
   }))
@@ -77,28 +80,30 @@ function attachKeypressEvents () {
 
 // depends on faceUpCards
 function displayCards() {
-  let tds = state.faceUpCards.map((card, i) => {
-    let td = document.createElement('td')
-    td.id = i
-    td.appendChild(cardSvgNode(card))
-    return td
+  let cardDivs = state.faceUpCards.map((card, i) => {
+    let cardDiv = document.createElement('div')
+    cardDiv.className = 'card'
+    cardDiv.id = i
+    cardDiv.appendChild(cardSvgNode(card))
+    return cardDiv
   })
 
-  const cardsPerRow = Math.ceil(tds.length / 3)
+  const cardsPerRow = Math.ceil(cardDivs.length / 3)
   let row
 
-  let rows = tds.reduce((rows, td, i) => {
+  let rows = cardDivs.reduce((rows, cardDiv, i) => {
     if (i % cardsPerRow === 0) {
-      row = document.createElement('tr')
+      row = document.createElement('div')
+      row.className = 'row'
     }
-    row.appendChild(td)
+    row.appendChild(cardDiv)
     return rows.concat(row)
   }, [])
 
-  const table = document.getElementsByTagName('table')[0]
+  const cardsDiv = document.getElementById('cards')
 
   rows.forEach(row =>
-    table.appendChild(row)
+    cardsDiv.appendChild(row)
   )
 }
 
@@ -132,8 +137,6 @@ function cardSvgNode(card) {
   }
 
   let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  svg.setAttribute('width', '100%')
-  svg.setAttribute('height', '100%')
   svg.setAttribute('viewBox', '-1 0 2 4')
 
   if (card.shading === 'striped') {
