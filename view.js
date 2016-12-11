@@ -8,6 +8,7 @@ function renderCards() {
   clearCards()
   displayCards()
   attachClickHandlers()
+  attachHoverHandlers()
 }
 
 function clearCards() {
@@ -57,30 +58,32 @@ function renderScore() {
 
 function attachClickHandlers() {
   const cardDivs = Array.from(document.getElementsByClassName('card'))
-  cardDivs.forEach(card => card.addEventListener('click', function() {
-    this.classList.toggle('selected')
-    const card = state.faceUpCards[Number(this.id)]
-    if (!state.selectedCards.includes(card)) {
-      state.selectedCards.push(card)
-    } else {
-      state.selectedCards.splice(state.selectedCards.indexOf(card), 1)
-    }
-    if (state.selectedCards.length >= 3) {
-      if (isASet(state.selectedCards)) {
-        state.score++
-        discardAndReplace()
-        render()
-        state.hintI = 0
+  cardDivs.forEach(card =>
+    card.addEventListener('click', function() {
+      this.classList.toggle('selected')
+      const card = state.faceUpCards[Number(this.id)]
+      if (!state.selectedCards.includes(card)) {
+        state.selectedCards.push(card)
       } else {
-        alert('This is not a set...')
-        if (state.score > 0) state.score--
-        render()
-        state.selectedCards = []
-        const cardDivs = Array.from(document.getElementsByClassName('card'))
-        cardDivs.forEach(card => card.classList.remove('selected'))
+        state.selectedCards.splice(state.selectedCards.indexOf(card), 1)
       }
-    }
-  }))
+      if (state.selectedCards.length >= 3) {
+        if (isASet(state.selectedCards)) {
+          state.score++
+          discardAndReplace()
+          render()
+          state.hintI = 0
+        } else {
+          alert('This is not a set...')
+          if (state.score > 0) state.score--
+          render()
+          state.selectedCards = []
+          const cardDivs = Array.from(document.getElementsByClassName('card'))
+          cardDivs.forEach(card => card.classList.remove('selected'))
+        }
+      }
+    })
+  )
 }
 
 function attachKeypressEvents () {
@@ -88,17 +91,111 @@ function attachKeypressEvents () {
     switch (event.which) {
       case 104:
         giveHint()
-        break;
+        break
       case 114:
         resetGame()
-        break;
+        break
       case 51:
         addThreeCards()
-        break;
+        break
+      case 105:
+        if (!state.inputMode)
+          state.inputMode = true
+        else
+          state.inputMode = false
+        // renderCards()
+        break
       default:
         // console.log(event.which)
     }
   })
+}
+
+function attachHoverHandlers() {
+  const cardDivs = Array.from(document.getElementsByClassName('card'))
+  cardDivs.forEach(card => {
+
+    card.addEventListener('mouseenter', function() {
+      if (!state.inputMode) return
+      this.classList.remove('card')
+      this.classList.add('input-card')
+      renderSmallCards(this)
+    })
+
+    card.addEventListener('mouseleave', function() {
+      if (!state.inputMode) return
+      this.classList.remove('input-card')
+      this.classList.add('card')
+      while (this.lastChild)
+        this.removeChild(this.lastChild)
+      const card = state.faceUpCards[this.id]
+      this.appendChild(cardSvgNode(card))
+    })
+
+  })
+}
+
+function renderSmallCards(bigCardDiv) {
+  while (bigCardDiv.lastChild)
+    bigCardDiv.removeChild(bigCardDiv.lastChild)
+  const card = state.faceUpCards[bigCardDiv.id]
+  const smallCards = generateInputCards(card)
+  const cardDivs = smallCards.map((card, i) => {
+    const cardDiv = document.createElement('div')
+    cardDiv.className = 'small-card'
+    cardDiv.id = `small ${i}`
+    cardDiv.appendChild(cardSvgNode(card))
+    return cardDiv
+  })
+
+  let row
+  let rows = cardDivs.reduce((rows, cardDiv, i) => {
+    if (i % 3 === 0) {
+      row = document.createElement('div')
+      row.className = 'row'
+    }
+    row.appendChild(cardDiv)
+    return rows.concat(row)
+  }, [])
+
+  rows.forEach(row => bigCardDiv.appendChild(row))
+
+  attachSmallCardClickHandlers(cardDivs, smallCards, bigCardDiv)
+}
+
+function attachSmallCardClickHandlers(smallCardDivs, smallCards, bigCardDiv) {
+  smallCardDivs.forEach(smallCardDiv =>
+    smallCardDiv.addEventListener('click', function(event) {
+      event.stopPropagation()
+      Object.assign(state.faceUpCards[bigCardDiv.id],
+        smallCards[parseInt(this.id.slice(-1))])
+      // renderSmallCards(bigCardDiv)
+    })
+  )
+}
+
+function generateInputCards(card) {
+  let cards = []
+  let newCard
+
+  for (color of ['red', 'green', 'purple']) {
+    newCard = Object.assign({}, card, {color})
+    cards.push(newCard)
+  }
+  for (number of ['one', 'two', 'three']) {
+    newCard = Object.assign({}, card, {number})
+    cards.push(newCard)
+  }
+  for (shading of ['solid', 'striped', 'open']) {
+    newCard = Object.assign({}, card, {shading})
+    cards.push(newCard)
+  }
+  for (symbol of ['diamond', 'squiggle', 'oval']) {
+    newCard = Object.assign({}, card, {symbol})
+    cards.push(newCard)
+  }
+
+  return cards
 }
 
 // depends on faceUpCards

@@ -3,7 +3,8 @@ let state = {
   faceUpCards: [],
   selectedCards: [],
   score: 0,
-  hintI: 0
+  hintI: 0,
+  inputMode: false
 }
 
 window.addEventListener('load', function() {
@@ -38,7 +39,8 @@ function resetGame() {
     faceUpCards: draw(12),
     selectedCards: [],
     score: 0,
-    hintI: 0
+    hintI: 0,
+    inputMode: false
   }
   render()
 }
