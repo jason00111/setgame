@@ -7,12 +7,16 @@ let state = {
 }
 
 function saveGame() {
-  localStorage.state = JSON.stringify(state)
+  localStorage.deck = JSON.stringify(state.deck)
+  localStorage.faceUpCards = JSON.stringify(state.faceUpCards)
+  localStorage.score = JSON.stringify(state.score)
 }
 
 function loadGame() {
-  if (localStorage.state) {
-    state = JSON.parse(localStorage.state)
+  if (localStorage.deck) {
+    state.deck = JSON.parse(localStorage.deck)
+    state.faceUpCards = JSON.parse(localStorage.faceUpCards)
+    state.score = JSON.parse(localStorage.score)
     return true
   } else {
     return false

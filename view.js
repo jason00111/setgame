@@ -39,7 +39,7 @@ function attachClickHandlers() {
     } else {
       state.selectedCards.splice(state.selectedCards.indexOf(card), 1)
     }
-    if (state.selectedCards.length === 3) {
+    if (state.selectedCards.length >= 3) {
       if (isASet(state.selectedCards)) {
         state.score++
         discardAndReplace()
