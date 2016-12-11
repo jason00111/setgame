@@ -28,8 +28,31 @@ function renderScore() {
   const noOfSetsText = document.createTextNode(`Possible sets: ${numberOfSets(state.faceUpCards)}`)
   noOfSetsDiv.appendChild(noOfSetsText)
 
+  const inputKeysDiv = document.createElement('div')
+
+  const resetDiv = document.createElement('div')
+  const add3Div = document.createElement('div')
+  const hintDiv = document.createElement('div')
+  const inputDiv = document.createElement('div')
+
+  const resetText = document.createTextNode('r: reset game')
+  const add3Text = document.createTextNode('3: add 3 cards')
+  const hintText = document.createTextNode('h: hint')
+  const inputText = document.createTextNode('i: toggle input mode')
+
+  resetDiv.appendChild(resetText)
+  add3Div.appendChild(add3Text)
+  hintDiv.appendChild(hintText)
+  inputDiv.appendChild(inputText)
+
+  inputKeysDiv.appendChild(resetDiv)
+  inputKeysDiv.appendChild(add3Div)
+  inputKeysDiv.appendChild(hintDiv)
+  inputKeysDiv.appendChild(inputDiv)
+
   scoreBoard.appendChild(scoreDiv)
   scoreBoard.appendChild(noOfSetsDiv)
+  scoreBoard.appendChild(inputKeysDiv)
 }
 
 function attachClickHandlers() {

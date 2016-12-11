@@ -3,6 +3,14 @@ body {
   display: flex;
 }
 
+#score {
+  margin: 20px;
+}
+
+#score > * {
+  margin: 10px;
+}
+
 #cards {
   display: flex;
   flex-direction: column;
@@ -10,12 +18,15 @@ body {
 
 .row {
   display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .card {
   width: 130px;
   height: 182px;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   margin: 10px;
