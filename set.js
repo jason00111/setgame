@@ -30,7 +30,7 @@ function resetGame() {
   render()
 }
 
-$(function() {
+window.addEventListener('load', function() {
   if (!loadGame()) {
     state.deck = shuffleCards(generateCards())
     state.faceUpCards = draw(12)
@@ -43,10 +43,11 @@ function giveHint() {
   sets = findSets(state.faceUpCards)
   if (sets.length !== 0) {
     sets[state.hintI].forEach(card => {
-      $(`#${state.faceUpCards.indexOf(card)}`).addClass('hint')
+      let cardId = state.faceUpCards.indexOf(card)
+      document.getElementById(cardId).classList.add('hint')
       window.setTimeout(
         function() {
-          $(`#${state.faceUpCards.indexOf(card)}`).removeClass('hint')
+          document.getElementById(cardId).classList.remove('hint')
         }, 350
       )
     })

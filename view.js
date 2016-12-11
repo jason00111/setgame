@@ -1,25 +1,39 @@
 function render() {
+  saveGame()
   renderCards()
   renderScore()
 }
 
 function renderCards() {
-  saveGame()
-  $('tr').remove()
+  const table = document.getElementsByTagName('table')[0]
+  while (table.lastChild) table.removeChild(table.lastChild)
+
   displayCards()
   attachClickHandlers()
 }
 
 function renderScore() {
-  $('#score').empty()
-  $('#score').append(`<div>Score: ${state.score}</div>
-                      <div>Possible sets: ${numberOfSets(state.faceUpCards)}</div>`)
+  const scoreBoard = document.getElementById('score')
+
+  while (scoreBoard.lastChild) scoreBoard.removeChild(scoreBoard.lastChild)
+
+  const scoreDiv = document.createElement('div')
+  const scoreText = document.createTextNode(`Score: ${state.score}`)
+  scoreDiv.appendChild(scoreText)
+
+  const noOfSetsDiv = document.createElement('div')
+  const noOfSetsText = document.createTextNode(`Possible sets: ${numberOfSets(state.faceUpCards)}`)
+  noOfSetsDiv.appendChild(noOfSetsText)
+
+  scoreBoard.appendChild(scoreDiv)
+  scoreBoard.appendChild(noOfSetsDiv)
 }
 
 function attachClickHandlers() {
-  $('td').click(function() {
-    $(this).toggleClass('selected')
-    const card = state.faceUpCards[Number($(this).attr('id'))]
+  const tds = Array.from(document.getElementsByTagName('td'))
+  tds.forEach(td => td.addEventListener('click', function() {
+    this.classList.toggle('selected')
+    const card = state.faceUpCards[Number(this.id)]
     if (!state.selectedCards.includes(card)) {
       state.selectedCards.push(card)
     } else {
@@ -27,7 +41,6 @@ function attachClickHandlers() {
     }
     if (state.selectedCards.length === 3) {
       if (isASet(state.selectedCards)) {
-        // alert('You found a set!')
         state.score++
         discardAndReplace()
         render()
@@ -37,14 +50,15 @@ function attachClickHandlers() {
         if (state.score > 0) state.score--
         render()
         state.selectedCards = []
-        $('td').removeClass('selected')
+        const tds = Array.from(document.getElementsByTagName('td'))
+        tds.forEach(td => td.classList.remove('selected'))
       }
     }
-  })
+  }))
 }
 
 function attachKeypressEvents () {
-  $('body').keypress(function(event) {
+  document.body.addEventListener('keypress', function(event) {
     switch (event.which) {
       case 104:
         giveHint()
@@ -56,7 +70,7 @@ function attachKeypressEvents () {
         addThreeCards()
         break;
       default:
-        console.log(event.which)
+        // console.log(event.which)
     }
   })
 }
@@ -81,8 +95,10 @@ function displayCards() {
     return rows.concat(row)
   }, [])
 
+  const table = document.getElementsByTagName('table')[0]
+
   rows.forEach(row =>
-    $('table').append(row)
+    table.appendChild(row)
   )
 }
 
