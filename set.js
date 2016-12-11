@@ -7,12 +7,16 @@ let state = {
 }
 
 function saveGame() {
-  localStorage.state = JSON.stringify(state)
+  localStorage.deck = JSON.stringify(state.deck)
+  localStorage.faceUpCards = JSON.stringify(state.faceUpCards)
+  localStorage.score = JSON.stringify(state.score)
 }
 
 function loadGame() {
-  if (localStorage.state) {
-    state = JSON.parse(localStorage.state)
+  if (localStorage.deck) {
+    state.deck = JSON.parse(localStorage.deck)
+    state.faceUpCards = JSON.parse(localStorage.faceUpCards)
+    state.score = JSON.parse(localStorage.score)
     return true
   } else {
     return false
@@ -30,7 +34,7 @@ function resetGame() {
   render()
 }
 
-$(function() {
+window.addEventListener('load', function() {
   if (!loadGame()) {
     state.deck = shuffleCards(generateCards())
     state.faceUpCards = draw(12)
@@ -43,10 +47,11 @@ function giveHint() {
   sets = findSets(state.faceUpCards)
   if (sets.length !== 0) {
     sets[state.hintI].forEach(card => {
-      $(`#${state.faceUpCards.indexOf(card)}`).addClass('hint')
+      let cardId = state.faceUpCards.indexOf(card)
+      document.getElementById(cardId).classList.add('hint')
       window.setTimeout(
         function() {
-          $(`#${state.faceUpCards.indexOf(card)}`).removeClass('hint')
+          document.getElementById(cardId).classList.remove('hint')
         }, 350
       )
     })
