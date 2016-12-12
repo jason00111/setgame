@@ -136,26 +136,27 @@ function cardSvgNode(card) {
     purple: '#673ab7'
   }
 
-  let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  svg.setAttribute('viewBox', '-1 0 2 4')
+  const svg = createSvgElement('svg', {viewBox: '-1 0 2 4'})
 
   if (card.shading === 'striped') {
-    let defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+    const defs = createSvgElement('defs')
 
-    let pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern')
-    pattern.setAttribute('id', 'Striped')
-    pattern.setAttribute('x', '0')
-    pattern.setAttribute('y', '0')
-    pattern.setAttribute('width', '0.03')
-    pattern.setAttribute('height', '1')
+    const pattern = createSvgElement('pattern', {
+      id: 'Striped',
+      x: '0',
+      y: '0',
+      width: '0.03',
+      height: '1'
+    })
 
-    let line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
-    line.setAttribute('x1', '0')
-    line.setAttribute('y1', '0')
-    line.setAttribute('x2', '0')
-    line.setAttribute('y2', '1')
-    line.setAttribute('stroke-width', '0.04')
-    line.setAttribute('stroke', colors[card.color])
+    const line = createSvgElement('line', {
+      x1: '0',
+      y1: '0',
+      x2: '0',
+      y2: '1',
+      'stroke-width': '0.04',
+      stroke: colors[card.color]
+    })
 
     pattern.appendChild(line)
     defs.appendChild(pattern)
@@ -171,15 +172,27 @@ function cardSvgNode(card) {
   for (let i = 0; i < numberOfShapes; i++) {
     yPosition = 2 - (numberOfShapes - 1) * 0.625 + i * 1.25
 
-    path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-    path.setAttribute('d', symbols[card.symbol])
-    path.setAttribute('fill', fill)
-    path.setAttribute('stroke', colors[card.color])
-    path.setAttribute('fill-opacity', shadings[card.shading])
-    path.setAttribute('transform', `translate(0, ${yPosition})`)
+    const path = createSvgElement('path', {
+      d: symbols[card.symbol],
+      fill: fill,
+      stroke: colors[card.color],
+      'fill-opacity': shadings[card.shading],
+      transform: `translate(0, ${yPosition})`
+    })
 
     svg.appendChild(path)
   }
 
   return svg
+}
+
+function createSvgElement(tagName, attributes = {}) {
+  const svgElement = document.createElementNS(
+    'http://www.w3.org/2000/svg',
+    tagName
+  )
+  for (let key in attributes) {
+    svgElement.setAttribute(key, attributes[key])
+  }
+  return svgElement
 }
