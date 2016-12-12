@@ -6,7 +6,13 @@ let state = {
   hintI: 0
 }
 
+const socket = io()
+socket.on('serverToClient', function (data) {
+  console.log(data)
+})
+
 window.addEventListener('load', function() {
+  socket.emit('clientToServer', 'hello from the client\npage loaded')
   if (!loadGame()) {
     state.deck = shuffleCards(generateCards())
     state.faceUpCards = draw(12)

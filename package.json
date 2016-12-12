@@ -1,0 +1,18 @@
+{
+  "name": "setgame",
+  "version": "1.0.0",
+  "main": "server.js",
+  "repository": {
+    "url": "https://github.com/jason00111/setgame.git",
+    "type": "git"
+  },
+  "author": "jason00111 <emberleyjason@gmail.com>",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.14.0",
+    "socket.io": "^1.7.2"
+  }
+}
