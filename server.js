@@ -9,7 +9,9 @@ let state = {
   users: {}
 }
 
-server.listen(8080, () => console.log('listening on port 8080'))
+let port = process.env.PORT || 8080
+
+server.listen(port, () => console.log(`listening on port ${port}`))
 
 app.use(express.static('public'))
 
@@ -56,7 +58,8 @@ io.on('connection', function(socket) {
           return drawnCards.pop()
         }
       })
-      sendRenderDataToAll(state, guessedCardIds)
+      io.emit('newlyFoundSet', guessedCardIds)
+      setTimeout(() => sendRenderDataToAll(state), 2000)
     } else {
       console.log(socket.id, 'incorrectly guessed a set')
       if (state.users[socket.id].score > 0) {
@@ -77,13 +80,12 @@ function allUsersScores(users) {
 }
 
 // impure
-function sendRenderDataToAll(state, newlyFoundSetCardIds) {
+function sendRenderDataToAll(state) {
   for (userId in state.users) {
     state.users[userId].socket.emit('renderData', {
       faceUpCards: state.faceUpCards,
       foundSets: state.users[userId].foundSets,
-      scores: allUsersScores(state.users),
-      newlyFoundSetCardIds: newlyFoundSetCardIds
+      scores: allUsersScores(state.users)
     })
   }
 }

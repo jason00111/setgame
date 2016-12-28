@@ -3,11 +3,18 @@ let state = {selectedCardIds: []}
 const socket = io()
 
 socket.on('renderData', function (renderData) {
-  const {faceUpCards, foundSets, scores, newlyFoundSetCardIds} = renderData
-  // if (newlyFoundSetCardIds) animateNewlyFoundSet(newlyFoundSetCardIds)
+  const {faceUpCards, foundSets, scores} = renderData
   if (faceUpCards) renderFaceUpCards(faceUpCards)
   if (foundSets) renderFoundSets(foundSets)
   if (scores) renderScores(scores)
+})
+
+socket.on('newlyFoundSet', function(newlyFoundSetCardIds) {
+  console.log('newsetfound', newlyFoundSetCardIds)
+  newlyFoundSetCardIds.forEach(id => {
+    const cardDiv = document.getElementById(id)
+    cardDiv.classList.add('new-set')
+  })
 })
 
 socket.on('scoreData', function (scores) {

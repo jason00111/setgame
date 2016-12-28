@@ -1,6 +1,7 @@
 {
   "name": "setgame",
   "version": "1.0.0",
+  "description": "A Set like game.",
   "main": "server.js",
   "repository": {
     "url": "https://github.com/jason00111/setgame.git",
@@ -14,5 +15,9 @@
   "dependencies": {
     "express": "^4.14.0",
     "socket.io": "^1.7.2"
+  },
+  "engines": {
+    "node": "7.0.0",
+    "npm": "3.10.8"
   }
 }
