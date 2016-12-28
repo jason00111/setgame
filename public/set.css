@@ -1,5 +1,5 @@
 body {
-  background-color: #fffde7;
+  background-color: rgb(191, 191, 191);
   display: flex;
 }
 
@@ -19,28 +19,11 @@ body {
   justify-content: center;
   align-items: center;
   margin: 10px;
-  border: solid 1px rgba(0,0,0,0.2);
-  border-radius: 10px;
-  box-shadow: 0 4px 5px rgba(0,0,0,0.3);
   background-color: white;
 }
 
-.selectable:hover, .selected {
-  box-shadow: 0 4px 10px 2px #2196f3;
-}
-
-.hint {
-  animation: wiggle .3s;
-}
-
-@keyframes wiggle {
-  20%, 60% {
-    transform: rotate(3deg);
-  }
-
-  40%, 80% {
-    transform: rotate(-3deg);
-  }
+.card:hover, .selected {
+  background-color: gold;
 }
 
 svg {
@@ -50,4 +33,34 @@ svg {
 
 path {
   stroke-width: 0.04;
+}
+
+#right-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#scores {
+  font-family: monospace;
+  margin: 10px;
+}
+
+#sets {
+  margin: 10px;
+}
+
+.set{
+  display: flex;
+  margin: 4px;
+}
+
+.setCard {
+  width: 26px;
+  height: 36.4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 2px;
+  background-color: white;
 }

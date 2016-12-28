@@ -1,137 +1,44 @@
-let state = {
-  faceUpCards: [],
-  selectedCardIds: [],
-  setCalled: false,
-  iCalledSet: false,
-  gaveUp: false
-}
+let state = {selectedCardIds: []}
 
 const socket = io()
 
-attachKeypressEvents()
-
-socket.on('faceUpCards', function (faceUpCards) {
-  state.faceUpCards = faceUpCards
-  renderCards()
+socket.on('renderData', function (renderData) {
+  const {faceUpCards, foundSets, scores, newlyFoundSetCardIds} = renderData
+  // if (newlyFoundSetCardIds) animateNewlyFoundSet(newlyFoundSetCardIds)
+  if (faceUpCards) renderFaceUpCards(faceUpCards)
+  if (foundSets) renderFoundSets(foundSets)
+  if (scores) renderScores(scores)
 })
 
-socket.on('correct', function () {
-  console.log('correct')
-  clearSelection()
+socket.on('scoreData', function (scores) {
+  renderScores(scores)
 })
 
-socket.on('incorrect', function () {
-  console.log('incorrect')
-  clearSelection()
-})
+function renderScores (scores) {
+  const scoresDiv = document.getElementById('scores')
+  while (scoresDiv.lastChild) scoresDiv.removeChild(scoresDiv.lastChild)
 
-socket.on('setCalled', function () {
-  console.log('setCalled')
-  state.setCalled = true
-  document.body.style.backgroundColor = '#f8bbd0'
-})
-
-socket.on('youCalledSet', function () {
-  console.log('youCalledSet')
-  state.iCalledSet = true
-  makeCardsSelectable()
-  document.body.style.backgroundColor = '#c8e6c9'
-})
-
-socket.on('noSetCalled', function () {
-  state.setCalled = false
-  state.iCalledSet = false
-  clearSelection()
-  document.body.style.backgroundColor = ''
-})
-
-socket.on('countdown', function (countdown) {
-  console.log(countdown)
-})
-
-socket.on('youGaveUp', function () {
-  state.gaveUp = true
-  document.body.style.backgroundColor = '#f8bbd0'
-})
-
-socket.on('resetGiveUp', function () {
-  state.gaveUp = false
-  document.body.style.backgroundColor = ''
-})
-
-socket.on('message', function (message) {
-  alert(message)
-})
-
-function attachKeypressEvents () {
-  document.body.addEventListener('keypress', function (event) {
-    switch (event.which) {
-      case 115:
-        socket.emit('set')
-        break;
-      case 103:
-        socket.emit('giveUp')
-        break;
-      default:
-        console.log(event.which)
+  let scoreDiv, scoreTextNode, user
+  for (userId in scores) {
+    if (userId === socket.id) {
+      user = 'Me'
+    } else {
+      user = userId.slice(0, 2)
     }
-  })
-}
-
-function attachClickHandlers () {
-  const cardDivs = Array.from(document.getElementsByClassName('card'))
-  cardDivs.forEach(card => card.addEventListener('click', clickHandler))
-}
-
-function clickHandler () {
-  if (!state.iCalledSet) {
-    alert('Press \'s\' to call set')
-    return
-  }
-  const cardId = Number(this.id)
-  if (
-    !state.selectedCardIds.includes(cardId)
-      && state.selectedCardIds.length < 3
-  ) {
-    state.selectedCardIds.push(cardId)
-    this.classList.add('selected')
-    if (state.selectedCardIds.length === 3) {
-      socket.emit('guess', state.selectedCardIds)
-    }
-  } else if (state.selectedCardIds.includes(cardId)) {
-    state.selectedCardIds.splice(state.selectedCardIds.indexOf(cardId), 1)
-    this.classList.remove('selected')
+    scoreDiv = document.createElement('div')
+    scoreTextNode = document.createTextNode(
+      `${user}: ${scores[userId]}`
+    )
+    scoreDiv.appendChild(scoreTextNode)
+    scoresDiv.appendChild(scoreDiv)
   }
 }
 
-function clearSelection () {
-  state.selectedCardIds = []
-  const cardDivs = Array.from(document.getElementsByClassName('card'))
-  cardDivs.forEach(card => {
-    card.classList.remove('selected')
-    card.classList.remove('selectable')
-  })
-}
-
-function makeCardsSelectable () {
-  const cardDivs = Array.from(document.getElementsByClassName('card'))
-  cardDivs.forEach(card => card.classList.add('selectable'))
-}
-
-
-function renderCards () {
-  clearCards()
-  displayCards()
-  attachClickHandlers()
-}
-
-function clearCards () {
+function renderFaceUpCards (faceUpCards) {
   const cardsDiv = document.getElementById('cards')
   while (cardsDiv.lastChild) cardsDiv.removeChild(cardsDiv.lastChild)
-}
 
-function displayCards () {
-  let cardDivs = state.faceUpCards.map((card, i) => {
+  let cardDivs = faceUpCards.map((card, i) => {
     let cardDiv = document.createElement('div')
     cardDiv.className = 'card'
     cardDiv.id = i
@@ -151,11 +58,64 @@ function displayCards () {
     return rows.concat(row)
   }, [])
 
-  const cardsDiv = document.getElementById('cards')
-
   rows.forEach(row =>
     cardsDiv.appendChild(row)
   )
+
+  attachCardClickHandlers(cardDivs)
+}
+
+function renderFoundSets (foundSets) {
+  const setsDiv = document.getElementById('sets')
+  while (setsDiv.lastChild) setsDiv.removeChild(setsDiv.lastChild)
+
+  let setDivs = foundSets.map(set => {
+    const setDiv = document.createElement('div')
+    setDiv.className = 'set'
+    let cardDivs = set.map(card => {
+      let cardDiv = document.createElement('div')
+      cardDiv.className = 'setCard'
+      cardDiv.appendChild(cardSvgNode(card))
+      return cardDiv
+    })
+
+    cardDivs.forEach(cardDiv =>
+      setDiv.appendChild(cardDiv)
+    )
+    return setDiv
+  })
+
+  setDivs.forEach(setDiv =>
+    setsDiv.appendChild(setDiv)
+  )
+}
+
+function attachCardClickHandlers (cardDivs) {
+  cardDivs.forEach(card => card.addEventListener('click', function () {
+    const cardId = Number(this.id)
+    if (
+      !state.selectedCardIds.includes(cardId)
+        && state.selectedCardIds.length < 3
+    ) {
+      state.selectedCardIds.push(cardId)
+      this.classList.add('selected')
+      if (state.selectedCardIds.length === 3) {
+        socket.emit('guessSet', state.selectedCardIds)
+        clearCardSelection()
+      }
+    } else if (state.selectedCardIds.includes(cardId)) {
+      state.selectedCardIds.splice(state.selectedCardIds.indexOf(cardId), 1)
+      this.classList.remove('selected')
+    }
+  }))
+}
+
+function clearCardSelection () {
+  state.selectedCardIds = []
+  const cardDivs = Array.from(document.getElementsByClassName('card'))
+  cardDivs.forEach(card => {
+    card.classList.remove('selected')
+  })
 }
 
 function cardSvgNode (card) {
@@ -216,9 +176,9 @@ function cardSvgNode (card) {
 
   let path, yPosition
   let numberOfShapes = numbers[card.number]
-  let fill = (card.shading === 'striped') ?
-               `url(#${card.color}Striped)` :
-               `${colors[card.color]}`
+  let fill = (card.shading === 'striped')
+    ? `url(#${card.color}Striped)`
+    : `${colors[card.color]}`
 
   for (let i = 0; i < numberOfShapes; i++) {
     yPosition = 2 - (numberOfShapes - 1) * 0.625 + i * 1.25

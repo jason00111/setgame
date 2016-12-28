@@ -6,9 +6,6 @@ const io = require('socket.io')(server)
 let state = {
   deck: [],
   faceUpCards: [],
-  setCalled: false,
-  timerId: null,
-  countdown: 10,
   users: {}
 }
 
@@ -22,124 +19,84 @@ app.get('/', function (req, res) {
 
 newGame()
 
-io.on('connection', function (socket) {
+io.on('connection', function(socket) {
   console.log(`a player connected`, socket.id)
-  state.users = Object.assign(state.users, {
+
+  Object.assign(state.users, {
     [socket.id]: {
-      connected: true,
-      gaveUp: false
+      foundSets: [],
+      score: 0,
+      socket: socket
     }
   })
-  socket.emit('faceUpCards', state.faceUpCards)
+
+  socket.emit('renderData', {
+    faceUpCards: state.faceUpCards
+  })
+  io.emit('scoreData', allUsersScores(state.users))
 
   socket.on('disconnect', function () {
     console.log('a player disconnected', socket.id)
-    state.users[socket.id].connected = false
+    delete state.users[socket.id]
+    io.emit('scoreData', allUsersScores(state.users))
   })
 
-  socket.on('set', function () {
-    if (state.users[socket.id].gaveUp) {
-      socket.emit('message', 'You gave up. Wait until everyone else gives up or someone else finds a set')
-      return
-    }
-    console.log('set called by', socket.id)
-    if (!state.setCalled) {
-      state.setCalled = socket.id
-      socket.broadcast.emit('setCalled')
-      socket.emit('youCalledSet')
-      state.countdownId = setInterval(function () {
-        io.emit('countdown', state.countdown)
-        if (state.countdown > 0) {
-          state.countdown--
+  socket.on('guessSet', function (guessedCardIds) {
+    const guessedCards = guessedCardIds.map(id => state.faceUpCards[id])
+    if (isASet(guessedCards)) {
+      console.log(socket.id, 'correctly guessed a set')
+      ++ state.users[socket.id].score
+      state.users[socket.id].foundSets.push(guessedCards)
+      let {drawnCards, deck} = draw(3, state.deck)
+      state.deck = deck
+      state.faceUpCards = state.faceUpCards.map((card, id) => {
+        if (guessedCardIds.indexOf(id) === -1) {
+          return card
         } else {
-          clearInterval(state.countdownId)
-          state.countdown = 10
-          state.setCalled = false
-          io.emit('noSetCalled')
+          return drawnCards.pop()
         }
-      }, 1000)
-    }
-  })
-
-  socket.on('guess', function (selectedCardIds) {
-    if (state.setCalled !== socket.id) return
-    if (
-      isASet(selectedCardIds.map(id => state.faceUpCards[id]))
-    ) {
-      socket.emit('correct')
-      discardAndReplace(selectedCardIds)
-      io.emit('faceUpCards', state.faceUpCards)
-      io.emit('resetGiveUp')
+      })
+      sendRenderDataToAll(state, guessedCardIds)
     } else {
-      socket.emit('incorrect')
-    }
-    clearInterval(state.countdownId)
-    io.emit('noSetCalled')
-    state.countdown = 10
-    state.setCalled = false
-  })
-
-  socket.on('giveUp', function () {
-    console.log(socket.id, 'gave up')
-    socket.emit('youGaveUp')
-    state.users[socket.id].gaveUp = true
-    if (everyoneGaveUp()) {
-      addThreeCards()
-      io.emit('faceUpCards', state.faceUpCards)
-      io.emit('resetGiveUp')
-      resetGiveUp()
+      console.log(socket.id, 'incorrectly guessed a set')
+      if (state.users[socket.id].score > 0) {
+        -- state.users[socket.id].score
+      }
+      io.emit('scoreData', allUsersScores(state.users))
     }
   })
 })
 
-function everyoneGaveUp () {
-  for (let userId in state.users) {
-    if (state.users[userId].connected && !state.users[userId].gaveUp) {
-      return false
-    }
+// pure
+function allUsersScores(users) {
+  let scores = {}
+  for (userId in users) {
+    scores[userId] = users[userId].score
   }
-  return true
+  return scores
 }
 
-function resetGiveUp () {
-  for (let userId in state.users) {
-    state.users[userId].gaveUp = false
-  }
-}
-
-function addThreeCards () {
-  const columns = Math.ceil(state.faceUpCards.length / 3)
-  let card = draw1()
-  if (card) {
-    state.faceUpCards.splice(columns, 0, card)
-  }
-  card = draw1()
-  if (card) {
-    state.faceUpCards.splice(columns * 2 + 1, 0, card)
-  }
-  card = draw1()
-  if (card) {
-    state.faceUpCards.splice(state.faceUpCards.length, 0, card)
+// impure
+function sendRenderDataToAll(state, newlyFoundSetCardIds) {
+  for (userId in state.users) {
+    state.users[userId].socket.emit('renderData', {
+      faceUpCards: state.faceUpCards,
+      foundSets: state.users[userId].foundSets,
+      scores: allUsersScores(state.users),
+      newlyFoundSetCardIds: newlyFoundSetCardIds
+    })
   }
 }
 
-function discardAndReplace (selectedCardIds) {
-  let newCard
-  selectedCardIds.forEach(id => {
-    newCard = draw1()
-    if (newCard) {
-      state.faceUpCards.splice(id, 1, newCard)
-    } else {
-      state.faceUpCards.splice(id, 1)
-    }
-  })
-}
-
+// impure
 function newGame () {
   state.deck = shuffleCards(generateCards())
-  state.faceUpCards = draw(12)
+  const {drawnCards, deck} = draw(12, state.deck)
+  state.faceUpCards = drawnCards
+  state.deck = deck
 }
 
+// pure
 function generateCards () {
   let cards = []
   for (number of ['one', 'two', 'three']) {
@@ -154,6 +111,7 @@ function generateCards () {
   return cards
 }
 
+// pure
 function shuffleCards (unshuffledCards) {
   let shuffledCards = unshuffledCards.slice()
   let randomI, temp
@@ -166,28 +124,24 @@ function shuffleCards (unshuffledCards) {
   return shuffledCards
 }
 
-function draw (n) {
-  while (n > state.deck.length) {
+// pure, draw n cards from inputDeck
+function draw (n, inputDeck = []) {
+  let outputDeck = inputDeck.slice()
+  while (n > outputDeck.length) {
     n--
   }
   if (n === 0) {
-    return null
+    return {drawnCards: null, deck: outputDeck}
   }
   let drawnCards = []
   for (let i = 0; i < n; i++) {
-    drawnCards.push(state.deck.pop())
+    drawnCards.push(outputDeck.pop())
   }
-  return drawnCards
+  return {drawnCards: drawnCards, deck: outputDeck}
 }
 
-function draw1 () {
-  if (state.deck.length > 0) {
-    return state.deck.pop()
-  } else {
-    return null
-  }
-}
-
+// pure, checks to see if cards make a set
+// if, for any feature, the cards are not all the same and are also not all different, they are not a set
 function isASet (cards) {
   for (feature in cards[0]) {
     if (
